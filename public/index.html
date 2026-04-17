@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcription Vidéo - Espace Professionnel</title>
+    <style>
+        /* Base styles */
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --error-bg: #fef2f2;
+            --error-border: #fecaca;
+            --error-text: #991b1b;
+            --success-color: #22c55e;
+            --ring-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 5rem;
+        }
+
+        /* Layout & Typography */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 0 1.5rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Card component */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            padding-left: 0.75rem;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+            color: #94a3b8;
+        }
+
+        .input-icon svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .form-input {
+            width: 100%;
+            display: block;
+            padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--ring-color);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .btn-primary:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--ring-color);
+        }
+
+        .btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.5rem;
+        }
+
+        .btn-outline {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            text-decoration: none;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-outline:hover {
+            background-color: #f8fafc;
+        }
+        
+        .btn-outline svg {
+            color: var(--text-muted);
+        }
+
+        /* Loading State */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .loader {
+            border: 4px solid #f1f5f9;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            animation: spinner 1.5s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-state h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .loading-state p {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        /* Error State */
+        .error-state {
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            margin-top: 1.5rem;
+        }
+
+        .error-state svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #f87171;
+            margin-right: 0.75rem;
+            margin-top: 0.125rem;
+            flex-shrink: 0;
+        }
+
+        .error-state h3 {
+            font-size: 0.875rem;
+            color: var(--error-text);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .error-state p {
+            font-size: 0.875rem;
+            color: #b91c1c;
+        }
+
+        /* Success State */
+        .success-state {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .success-header {
+            display: flex;
+            align-items: center;
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+
+        .success-header svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: var(--success-color);
+            margin-right: 0.5rem;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        @media (min-width: 480px) {
+            .button-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Utility classes for toggling states */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Plateforme de Transcription</h1>
+            <p>Générez un document textuel à partir d'une URL vidéo.</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <form id="transcription-form">
+                <div class="form-group">
+                    <label for="url" class="form-label">URL de la vidéo</label>
+                    <div class="input-wrapper">
+                        <div class="input-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                            </svg>
+                        </div>
+                        <input type="url" name="url" id="url" class="form-input" required placeholder="https://www.youtube.com/watch?v=...">
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Démarrer la transcription
+                </button>
+            </form>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state hidden">
+                <div class="loader"></div>
+                <h3>Traitement en cours, veuillez patienter...</h3>
+                <p>Téléchargement, extraction audio et génération du document.</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="error-state hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <div>
+                    <h3>Erreur lors du traitement</h3>
+                    <p id="error-message"></p>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div id="success-state" class="success-state hidden">
+                <div class="success-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Transcription terminée
+                </div>
+                
+                <div class="button-grid">
+                    <a id="btn-download-pdf" href="#" download class="btn btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Télécharger le PDF
+                    </a>
+                    
+                    <a id="btn-view-video" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                        Voir la vidéo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('transcription-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const urlInput = document.getElementById('url').value;
+            const form = document.getElementById('transcription-form');
+            const loadingState = document.getElementById('loading-state');
+            const successState = document.getElementById('success-state');
+            const errorState = document.getElementById('error-state');
+            const errorMessage = document.getElementById('error-message');
+            const btnDownloadPdf = document.getElementById('btn-download-pdf');
+            const btnViewVideo = document.getElementById('btn-view-video');
+
+            // Reset UI
+            form.classList.add('hidden');
+            successState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/process-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ videoUrl: urlInput })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Une erreur est survenue.');
+
+                // Configurer les boutons de succès
+                btnDownloadPdf.href = data.data.pdfUrl;
+                btnViewVideo.href = urlInput;
+
+                // Afficher le résultat
+                loadingState.classList.add('hidden');
+                successState.classList.remove('hidden');
+                
+            } catch (err) {
+                loadingState.classList.add('hidden');
+                form.classList.remove('hidden');
+                errorState.classList.remove('hidden');
+                errorMessage.textContent = err.message;
+            }
+        });
+    </script>
+</body>
+</html>

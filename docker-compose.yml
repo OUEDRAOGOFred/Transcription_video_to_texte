@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: transcription_api
+    ports:
+      - "3000:3000"
+    environment:
+      # L'hôte de la base de données devient le nom du service "db" défini ci-dessous
+      - DATABASE_URL=mysql://root:Freddy1243.@db:3306/transcription_db
+      # On récupère la clé depuis le fichier .env de l'hôte
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    depends_on:
+      - db
+    volumes:
+      # Pour conserver les téléchargements et PDF même si le conteneur redémarre
+      - ./downloads:/usr/src/app/downloads
+      - ./outputs:/usr/src/app/outputs
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: transcription_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=Freddy1243.
+      - MYSQL_DATABASE=transcription_db
+    ports:
+      - "3306:3306"
+    volumes:
+      # Persistance de la base de données
+      - mysql_data:/var/lib/mysql
+      # Exécute automatiquement init.sql à la création de la base
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

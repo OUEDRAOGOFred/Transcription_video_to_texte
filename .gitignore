@@ -1,0 +1,15 @@
+node_modules/
+.env
+
+# Dossiers générés dynamiquement par l'application
+downloads/
+outputs/
+
+# Fichiers de log
+npm-debug.log
+yarn-error.log
+*.log
+
+# Fichiers système MacOS/Windows
+.DS_Store
+Thumbs.db
