@@ -1,5 +1,5 @@
-# Utilisation de l'image de base Node.js minimale basée sur Debian pour pouvoir y installer yt-dlp/ffmpeg facilement
-FROM node:20-bullseye
+# Utilisation d'une image Debian bookworm plus récente qui a Python 3.11 par défaut
+FROM node:20-bookworm
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /usr/src/app
@@ -8,9 +8,6 @@ WORKDIR /usr/src/app
 ENV PYTHONUNBUFFERED=1
 
 # Installation de dépendances systèmes essentielles
-# ffmpeg : Indispensable pour l'extraction et l'encodage audio MP3 via yt-dlp
-# python3 : Requis pour yt-dlp
-# curl : Pour extraire yt-dlp
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     python3 \
