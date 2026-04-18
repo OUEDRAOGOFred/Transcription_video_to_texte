@@ -31,16 +31,17 @@ const processVideo = async (req, res) => {
     console.log(`[controller] Étape 3 : Génération du PDF avec le texte transcrit`);
     pdfPath = await generatePDF(text, videoUrl);
 
-    // 4. Sauvegarder dans MySQL en SQL pur (avec gestion d'erreur dédiée sans ORM)
+    // 4. Sauvegarder dans PostgreSQL en SQL pur (avec gestion d'erreur dédiée sans ORM)
     console.log(`[controller] Étape 4 : Sauvegarde en base de données`);
     const insertQuery = `
       INSERT INTO transcriptions (video_url, transcript_text, pdf_path, status, created_at)
-      VALUES (?, ?, ?, 'COMPLETED', NOW())
+      VALUES ($1, $2, $3, 'COMPLETED', NOW())
+      RETURNING id;
     `;
     const dbParams = [videoUrl, text, pdfPath];
 
-    const [dbResult] = await db.query(insertQuery, dbParams);
-    const savedRecordId = dbResult.insertId;
+    const dbResult = await db.query(insertQuery, dbParams);
+    const savedRecordId = dbResult.rows[0].id;
 
     console.log(`[controller] Processus terminé avec succès. ID: ${savedRecordId}`);
     
