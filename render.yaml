@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: transcription-api
+    env: docker
+    region: frankfurt # ou oregon
+    plan: free
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false # À remplir manuellement sur le dashboard Render
+      - key: DATABASE_URL
+        sync: false # À remplir manuellement sur le dashboard Render avec ton URL MySQL cloud
