@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 # Variables d'environnement pour Python (nécessaire à yt-dlp)
 ENV PYTHONUNBUFFERED=1
 
-# Installation de dépendances systèmes essentielles
+# Installation de dépendances systèmes essentielles (bookworm fournit python3.11)
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     python3 \
@@ -15,6 +15,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+
+# Forcer l'utilisation de python3.11 comme default si nécessaire
+RUN ln -sf /usr/bin/python3.11 /usr/bin/python
 
 # Télécharger et installer l'exécutable yt-dlp
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
