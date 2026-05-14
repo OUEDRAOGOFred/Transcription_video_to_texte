@@ -22,7 +22,12 @@ const downloadAudio = (videoUrl) => {
     const finalAudioPath = path.join(downloadDir, `${fileId}.mp3`);
 
     // Commande bash pour yt-dlp : extrait l'audio en mp3
-    const command = `yt-dlp -x --audio-format mp3 -o "${outputTemplate}" "${videoUrl}"`;
+    // Options utilisées :
+    // --js-runtimes node : utilise Node.js pour l'extraction JavaScript de YouTube
+    // --user-agent : se fait passer pour un navigateur
+    // -x --audio-format mp3 : extrait l'audio en mp3
+    // --quiet --no-warnings : réduit les logs
+    const command = `yt-dlp -x --audio-format mp3 --js-runtimes node --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -o "${outputTemplate}" "${videoUrl}"`;
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
