@@ -25,31 +25,80 @@ const downloadAudio = (videoUrl) => {
     // Options utilisées pour contourner les protections YouTube :
     // -x --audio-format mp3 : extrait l'audio en mp3
     // --js-runtimes node : utilise Node.js pour l'extraction JavaScript de YouTube
-    // --user-agent : se fait passer pour un navigateur Chrome
-    // --extractor-args youtube:player_client=web : force le client web (pas mobile)
+    // --user-agent : navigateur Chrome authentifié
+    // --cookies-from-browser chrome : charge les cookies du navigateur Chrome système
+    // --extractor-args youtube:player_client=web : force le client web
     // --socket-timeout 30 : augmente le timeout réseau
-    // --sleep-interval 1 : ajoute 1 seconde de délai pour paraître moins comme un bot
-    // --retries 5 : réessaie jusqu'à 5 fois en cas d'erreur réseau
-    // --http-chunk-size 10485760 : taille de chunk pour les gros fichiers
-    // --skip-unavailable-fragments : saute les fragments indisponibles
-    const command = `yt-dlp -x --audio-format mp3 --js-runtimes node --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" --extractor-args "youtube:player_client=web" --socket-timeout 30 --sleep-interval 1 --retries 5 --http-chunk-size 10485760 --skip-unavailable-fragments -o "${outputTemplate}" "${videoUrl}"`;
+    // --sleep-interval 2 : délai pour paraître humain
+    // --retries 10 : réessaie jusqu'à 10 fois
+    // --http-chunk-size 10485760 : taille de chunk pour gros fichiers
+    // --skip-unavailable-fragments : saute fragments indisponibles
+    // --fragment-retries 10 : réessaie les fragments
+    const command = `yt-dlp -x --audio-format mp3 --js-runtimes node --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" --extractor-args "youtube:player_client=web;youtube:ignore_signaling=true" --socket-timeout 30 --sleep-interval 2 --retries 10 --http-chunk-size 10485760 --skip-unavailable-fragments --fragment-retries 10 --extractor-args "youtube:age_gate=true" -o "${outputTemplate}" "${videoUrl}"`;
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
-        console.error(`[downloader] Erreur lors du téléchargement: ${error.message}`);
-        console.error(`[downloader] stderr: ${stderr}`);
-        return reject(new Error('Échec du téléchargement ou de l\'extraction de l\'audio.'));
+        console.error(`[downloader] Erreur yt-dlp: ${error.message}`);
+        console.warn('[downloader] Tentative avec pytube en fallback...');
+        // Fallback avec pytube (alternative Python)
+        tryPytubeFallback(videoUrl, finalAudioPath, downloadDir, resolve, reject);
+        return;
       }
 
       // yt-dlp sauvegardera le fichier avec l'extension .mp3 en fonction du template
       if (fs.existsSync(finalAudioPath)) {
-        console.log(`[downloader] Audio extrait avec succès: ${finalAudioPath}`);
+        console.log(`[downloader] Audio extrait avec succès via yt-dlp: ${finalAudioPath}`);
         resolve(finalAudioPath);
       } else {
         console.error(`[downloader] Fichier final non trouvé: ${finalAudioPath}`);
-        reject(new Error('Le fichier audio final n\'a pas pu être trouvé.'));
+        // Tentative fallback
+        tryPytubeFallback(videoUrl, finalAudioPath, downloadDir, resolve, reject);
       }
     });
+  });
+};
+
+/**
+ * Fallback : télécharge via pytube (alternative Python)
+ */
+const tryPytubeFallback = (videoUrl, finalAudioPath, downloadDir, resolve, reject) => {
+  const pythonScript = `
+import sys
+from pytube import YouTube
+import os
+from moviepy.editor import AudioFileClip
+
+try:
+    yt = YouTube('${videoUrl}')
+    stream = yt.streams.filter(only_audio=True).first()
+    if stream:
+        temp_path = stream.download(output_path='${downloadDir}')
+        # Si le fichier n'est pas en .mp3, le convertir
+        if not temp_path.endswith('.mp3'):
+            audio_clip = AudioFileClip(temp_path)
+            audio_clip.write_audiofile('${finalAudioPath}', verbose=False, logger=None)
+            audio_clip.close()
+            os.remove(temp_path)
+        else:
+            os.rename(temp_path, '${finalAudioPath}')
+        print(f"Success:${finalAudioPath}")
+    else:
+        print("Error:No audio stream found")
+except Exception as e:
+    print(f"Error:{str(e)}")
+`;
+
+  exec(\`python3 << 'PYTHON_EOF'\n\${pythonScript}\nPYTHON_EOF\`, (error, stdout, stderr) => {
+    const output = stdout.trim();
+    if (output.startsWith('Success:')) {
+      const audioPath = output.replace('Success:', '').trim();
+      console.log(\`[downloader] Audio extrait avec succès via pytube: \${audioPath}\`);
+      resolve(audioPath);
+    } else {
+      const errorMsg = output.startsWith('Error:') ? output.replace('Error:', '') : stderr;
+      console.error(\`[downloader] Erreur pytube: \${errorMsg}\`);
+      reject(new Error('Échec du téléchargement via yt-dlp et pytube.'));
+    }
   });
 };
 
