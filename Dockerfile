@@ -21,7 +21,8 @@ RUN ln -sf /usr/bin/python3.11 /usr/bin/python
 
 # Installer yt-dlp via pip (pour les mises à jour régulières et la compatibilité YouTube maximale)
 # Puis installer les dépendances recommandées pour une meilleure extraction YouTube
-RUN pip install --no-cache-dir yt-dlp pysocks brotli
+# --break-system-packages est nécessaire avec Debian bookworm (PEP 668)
+RUN pip install --no-cache-dir --break-system-packages yt-dlp pysocks brotli
 
 # Copie des fichiers package.json et package-lock.json avant le code source 
 # Cela permet d'optimiser le cache Docker pour les couches deps
