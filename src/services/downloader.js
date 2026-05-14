@@ -62,8 +62,10 @@ const downloadAudio = (videoUrl) => {
  * Fallback : télécharge via pytube (alternative Python)
  */
 const tryPytubeFallback = (videoUrl, finalAudioPath, downloadDir, resolve, reject) => {
-  const pythonScript = `
-import sys
+  // Créer un script Python simple pour éviter les problèmes d'échappement
+  const scriptPath = path.join(downloadDir, `pytube_${crypto.randomBytes(8).toString('hex')}.py`);
+  
+  const pythonCode = `import sys
 from pytube import YouTube
 import os
 from moviepy.editor import AudioFileClip
@@ -78,7 +80,8 @@ try:
             audio_clip = AudioFileClip(temp_path)
             audio_clip.write_audiofile('${finalAudioPath}', verbose=False, logger=None)
             audio_clip.close()
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
         else:
             os.rename(temp_path, '${finalAudioPath}')
         print(f"Success:${finalAudioPath}")
@@ -86,17 +89,25 @@ try:
         print("Error:No audio stream found")
 except Exception as e:
     print(f"Error:{str(e)}")
-`;
+finally:
+    sys.exit(0)`;
 
-  exec(\`python3 << 'PYTHON_EOF'\n\${pythonScript}\nPYTHON_EOF\`, (error, stdout, stderr) => {
+  // Écrire le script dans un fichier temporaire
+  fs.writeFileSync(scriptPath, pythonCode);
+
+  // Exécuter le script Python
+  exec(`python3 '${scriptPath}'`, (error, stdout, stderr) => {
+    // Nettoyer le fichier temporaire
+    try { fs.unlinkSync(scriptPath); } catch (e) {}
+    
     const output = stdout.trim();
     if (output.startsWith('Success:')) {
       const audioPath = output.replace('Success:', '').trim();
-      console.log(\`[downloader] Audio extrait avec succès via pytube: \${audioPath}\`);
+      console.log(`[downloader] Audio extrait avec succès via pytube: ${audioPath}`);
       resolve(audioPath);
     } else {
       const errorMsg = output.startsWith('Error:') ? output.replace('Error:', '') : stderr;
-      console.error(\`[downloader] Erreur pytube: \${errorMsg}\`);
+      console.error(`[downloader] Erreur pytube: ${errorMsg}`);
       reject(new Error('Échec du téléchargement via yt-dlp et pytube.'));
     }
   });
