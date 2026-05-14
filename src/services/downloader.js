@@ -22,12 +22,17 @@ const downloadAudio = (videoUrl) => {
     const finalAudioPath = path.join(downloadDir, `${fileId}.mp3`);
 
     // Commande bash pour yt-dlp : extrait l'audio en mp3
-    // Options utilisées :
-    // --js-runtimes node : utilise Node.js pour l'extraction JavaScript de YouTube
-    // --user-agent : se fait passer pour un navigateur
+    // Options utilisées pour contourner les protections YouTube :
     // -x --audio-format mp3 : extrait l'audio en mp3
-    // --quiet --no-warnings : réduit les logs
-    const command = `yt-dlp -x --audio-format mp3 --js-runtimes node --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -o "${outputTemplate}" "${videoUrl}"`;
+    // --js-runtimes node : utilise Node.js pour l'extraction JavaScript de YouTube
+    // --user-agent : se fait passer pour un navigateur Chrome
+    // --extractor-args youtube:player_client=web : force le client web (pas mobile)
+    // --socket-timeout 30 : augmente le timeout réseau
+    // --sleep-interval 1 : ajoute 1 seconde de délai pour paraître moins comme un bot
+    // --retries 5 : réessaie jusqu'à 5 fois en cas d'erreur réseau
+    // --http-chunk-size 10485760 : taille de chunk pour les gros fichiers
+    // --skip-unavailable-fragments : saute les fragments indisponibles
+    const command = `yt-dlp -x --audio-format mp3 --js-runtimes node --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" --extractor-args "youtube:player_client=web" --socket-timeout 30 --sleep-interval 1 --retries 5 --http-chunk-size 10485760 --skip-unavailable-fragments -o "${outputTemplate}" "${videoUrl}"`;
 
     exec(command, (error, stdout, stderr) => {
       if (error) {

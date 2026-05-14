@@ -19,13 +19,9 @@ RUN apt-get update && apt-get install -y \
 # Forcer l'utilisation de python3.11 comme default si nécessaire
 RUN ln -sf /usr/bin/python3.11 /usr/bin/python
 
-# Télécharger et installer l'exécutable yt-dlp
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
-    && chmod a+rx /usr/local/bin/yt-dlp
-
-# Créer un lien symbolique pour que yt-dlp trouve node comme runtime JS
-# Cela aide yt-dlp à utiliser Node.js pour extraire les vidéos protégées par JavaScript
-RUN ln -sf /usr/local/bin/node /usr/bin/node 2>/dev/null || true
+# Installer yt-dlp via pip (pour les mises à jour régulières et la compatibilité YouTube maximale)
+# Puis installer les dépendances recommandées pour une meilleure extraction YouTube
+RUN pip install --no-cache-dir yt-dlp pysocks brotli
 
 # Copie des fichiers package.json et package-lock.json avant le code source 
 # Cela permet d'optimiser le cache Docker pour les couches deps
